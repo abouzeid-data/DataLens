@@ -26,6 +26,8 @@ pip install -r requirements.txt
 
 Copy `.env.example` to `.env` and add `GROQ_API_KEY` if you want AI explanations. Add SMTP settings if you want password reset emails. The app still works without a Groq key.
 
+For the downloadable Windows app, place `.env` next to `DataLens.exe` or create `%APPDATA%\DataLens\.env`. Password reset emails will not send until SMTP settings are configured.
+
 ## How To Run
 
 ```bash
@@ -51,6 +53,7 @@ The packaged app will be created at `dist\DataLens\DataLens.exe`, and a zip file
 - Do not commit `.env`, `database/app.db`, or generated reports.
 - Passwords are stored with salted PBKDF2 hashes.
 - Password reset links expire after one hour.
+- SMTP credentials are not shipped in the public app. Configure them locally with `.env`.
 - AI chat uses dataset summaries only; it does not execute AI-generated code.
 
 ## Project Structure

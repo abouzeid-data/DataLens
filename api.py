@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import base64
 import html
@@ -9,8 +10,6 @@ import pandas as pd
 import numpy as np
 import webview
 from dotenv import load_dotenv
-
-load_dotenv()
 
 from core.file_loader import load_file
 from core.data_cleaner import clean_data
@@ -48,6 +47,11 @@ from urllib.parse import quote
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
+def _runtime_dir():
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return PROJECT_ROOT
+
 def _app_data_dir():
     root = os.getenv("DATALENS_DATA_DIR")
     if root:
@@ -58,6 +62,17 @@ def _app_data_dir():
         path = Path.home() / ".datalens"
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+def _load_environment():
+    for env_path in (
+        PROJECT_ROOT / ".env",
+        _runtime_dir() / ".env",
+        _app_data_dir() / ".env",
+    ):
+        if env_path.exists():
+            load_dotenv(env_path, override=False)
+
+_load_environment()
 
 REPORTS_DIR = _app_data_dir() / "reports"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -88,8 +103,8 @@ def _send_reset_email(to_email, reset_link):
     password = os.getenv('SMTP_PASS')
     
     if not host or not user or not password:
-        print(f"\n--- MOCK EMAIL SENDER ---\nTo: {to_email}\nReset Link: {reset_link}\n-------------------------\n")
-        return True
+        print("Password reset email was not sent because SMTP settings are not configured.")
+        return False
         
     try:
         msg = MIMEMultipart("alternative")
@@ -278,7 +293,7 @@ class Api:
         if success:
             return json.dumps({"status": "ok"})
         else:
-            return json.dumps({"error": "Failed to send email. Check SMTP settings."})
+            return json.dumps({"error": "Password reset email is not configured. Add SMTP settings to the app .env file."})
 
     def reset_password(self, token, new_password):
         if not _valid_password(new_password):
