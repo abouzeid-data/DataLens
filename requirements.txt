@@ -1,0 +1,12 @@
+pandas
+openpyxl
+plotly
+scikit-learn
+reportlab
+requests
+groq
+python-dotenv
+numpy
+pywebview
+arabic-reshaper
+python-bidi

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataLens</title>
+  <link rel="icon" type="image/png" href="assets/LOGO.png" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ============ Loading Overlay ============ -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <span class="loading-text" data-i18n="loading">Loading...</span>
+  </div>
+
+  <!-- ============ Toast Container ============ -->
+  <div id="toast-container"></div>
+
+  <!-- ============ App Layout ============ -->
+  <div class="app-layout">
+
+    <!-- ======== Sidebar ======== -->
+    <aside class="sidebar" id="app-sidebar" style="display: none;">
+      <div class="sidebar-header">
+        <img class="app-logo app-logo-sidebar" src="assets/LOGO.png" alt="DataLens logo">
+        <span class="logo-text">DataLens</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Upload -->
+        <div class="nav-item active" data-view="upload">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          <span class="nav-label" data-i18n="navUpload">Upload</span>
+        </div>
+
+        <!-- Analysis -->
+        <div class="nav-item" data-view="analysis">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18 17V9M13 17V5M8 17v-3"/></svg>
+          <span class="nav-label" data-i18n="navAnalysis">Analysis</span>
+        </div>
+
+        <!-- Reports -->
+        <div class="nav-item" data-view="reports">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </svg>
+          <span class="nav-label" data-i18n="navReports">Reports</span>
+        </div>
+
+        <!-- History -->
+        <div class="nav-item" data-view="history">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          <span class="nav-label" data-i18n="navHistory">History</span>
+        </div>
+
+        <!-- Settings -->
+        <div class="nav-item" data-view="settings">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="nav-label" data-i18n="navSettings">Settings</span>
+        </div>
+
+        <!-- Admin -->
+        <div class="nav-item" data-view="admin" id="nav-admin" style="display: none; color: #fbbf24;">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span class="nav-label">Admin Panel</span>
+        </div>
+      </nav>
+      
+      <div style="padding: 20px;">
+        <button class="btn btn-secondary" style="width: 100%; border-color: rgba(239, 68, 68, 0.5); color: #ef4444;" onclick="logout()">Logout</button>
+      </div>
+    </aside>
+
+    <!-- ======== Main Content ======== -->
+    <main class="main-content">
+      
+      <!-- ── Auth View ── -->
+      <div id="view-auth" class="view active" style="display: flex; align-items: center; justify-content: center; height: 100%;">
+        
+        <!-- Login Form -->
+        <div id="auth-login-box" style="background: rgba(30, 41, 59, 0.5); padding: 40px; border-radius: 12px; border: 1px solid #334155; max-width: 400px; width: 100%; text-align: center;">
+          <img class="app-logo app-logo-auth" src="assets/LOGO.png" alt="DataLens logo">
+          <h1 class="page-title" style="margin-bottom: 24px;" data-i18n="authWelcome">Welcome Back</h1>
+          <div style="margin-bottom: 16px;">
+            <input type="text" id="login-username" placeholder="Username" data-i18n-placeholder="username" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none; margin-bottom: 16px;">
+            <input type="password" id="login-password" placeholder="Password" data-i18n-placeholder="password" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none;">
+          </div>
+          <div style="text-align: right; margin-bottom: 24px;">
+            <a href="#" onclick="showAuthView('forgot')" style="color: #0ea5e9; font-size: 14px; text-decoration: none;" data-i18n="forgotPassword">Forgot Password?</a><br>
+            <a href="#" onclick="showResetWithPrompt()" style="color: #64748b; font-size: 12px; text-decoration: none; margin-top: 4px; display: inline-block;" data-i18n="haveResetToken">I have a reset token</a>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn btn-primary" style="width: 100%;" onclick="handleLogin()" data-i18n="login">Login</button>
+            <p style="margin-top: 12px; font-size: 14px; color: #94a3b8;"><span data-i18n="noAccount">Don't have an account?</span> <a href="#" onclick="showAuthView('register')" style="color: #0ea5e9; text-decoration: none;" data-i18n="signUp">Sign Up</a></p>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="auth-register-box" style="display: none; background: rgba(30, 41, 59, 0.5); padding: 40px; border-radius: 12px; border: 1px solid #334155; max-width: 450px; width: 100%; text-align: center;">
+          <img class="app-logo app-logo-auth" src="assets/LOGO.png" alt="DataLens logo">
+          <h1 class="page-title" style="margin-bottom: 24px;" data-i18n="createAccount">Create Account</h1>
+          <div style="margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <input type="text" id="reg-firstname" placeholder="First Name" data-i18n-placeholder="firstName" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none;">
+            <input type="text" id="reg-lastname" placeholder="Last Name" data-i18n-placeholder="lastName" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none;">
+          </div>
+          <div style="margin-bottom: 16px;">
+            <input type="email" id="reg-email" placeholder="Email Address" data-i18n-placeholder="emailAddress" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none; margin-bottom: 16px;">
+            <input type="text" id="reg-username" placeholder="Username" data-i18n-placeholder="username" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none; margin-bottom: 16px;">
+            <input type="password" id="reg-password" placeholder="Password" data-i18n-placeholder="password" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none; margin-bottom: 16px;">
+            
+            <label style="display: block; text-align: left; color: #94a3b8; font-size: 14px; margin-bottom: 8px;" data-i18n="useCaseLabel">What type of data will you analyze?</label>
+            <select id="reg-usecase" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none;">
+              <option value="General" data-i18n="useCaseGeneral">General / Other</option>
+              <option value="Finance" data-i18n="useCaseFinance">Finance</option>
+              <option value="E-Commerce" data-i18n="useCaseEcommerce">E-Commerce / Sales</option>
+              <option value="Healthcare" data-i18n="useCaseHealthcare">Healthcare</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px;">
+            <button class="btn btn-primary" style="width: 100%;" onclick="handleRegister()" data-i18n="signUp">Sign Up</button>
+            <p style="margin-top: 12px; font-size: 14px; color: #94a3b8;"><span data-i18n="alreadyHaveAccount">Already have an account?</span> <a href="#" onclick="showAuthView('login')" style="color: #0ea5e9; text-decoration: none;" data-i18n="login">Login</a></p>
+          </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="auth-forgot-box" style="display: none; background: rgba(30, 41, 59, 0.5); padding: 40px; border-radius: 12px; border: 1px solid #334155; max-width: 400px; width: 100%; text-align: center;">
+          <img class="app-logo app-logo-auth" src="assets/LOGO.png" alt="DataLens logo">
+          <h1 class="page-title" style="margin-bottom: 24px;" data-i18n="resetPassword">Reset Password</h1>
+          <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;" data-i18n="forgotPasswordHelp">Enter your email address and we'll send you a link to reset your password.</p>
+          <div style="margin-bottom: 24px;">
+            <input type="email" id="forgot-email" placeholder="Email Address" data-i18n-placeholder="emailAddress" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn btn-primary" style="width: 100%;" onclick="handleForgotPassword()" data-i18n="sendResetLink">Send Reset Link</button>
+            <p style="margin-top: 12px; font-size: 14px; color: #94a3b8;"><a href="#" onclick="showAuthView('login')" style="color: #0ea5e9; text-decoration: none;" data-i18n="backToLogin">Back to Login</a></p>
+          </div>
+        </div>
+
+        <!-- Reset Password Form -->
+        <div id="auth-reset-box" style="display: none; background: rgba(30, 41, 59, 0.5); padding: 40px; border-radius: 12px; border: 1px solid #334155; max-width: 400px; width: 100%; text-align: center;">
+          <img class="app-logo app-logo-auth" src="assets/LOGO.png" alt="DataLens logo">
+          <h1 class="page-title" style="margin-bottom: 24px;" data-i18n="newPassword">New Password</h1>
+          <input type="hidden" id="reset-token">
+          <div style="margin-bottom: 24px;">
+            <input type="password" id="reset-password" placeholder="New Password" data-i18n-placeholder="newPassword" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; color: #f8fafc; border-radius: 8px; outline: none;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn btn-primary" style="width: 100%;" onclick="handleResetPassword()" data-i18n="updatePassword">Update Password</button>
+            <p style="margin-top: 12px; font-size: 14px; color: #94a3b8;"><a href="#" onclick="showAuthView('login')" style="color: #0ea5e9; text-decoration: none;" data-i18n="cancel">Cancel</a></p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ---- Top Header ---- -->
+      <header class="top-header">
+        <div class="top-brand">
+          <img class="app-logo app-logo-header" src="assets/LOGO.png" alt="DataLens logo">
+          <h1 class="page-title" data-i18n="appName">DataLens</h1>
+        </div>
+        <div class="header-actions">
+          <button id="lang-toggle" class="btn-ghost" onclick="toggleLanguage()">عربي</button>
+        </div>
+      </header>
+
+      <!-- ======================================================
+           VIEW: Upload (default active)
+           ====================================================== -->
+      <section id="view-upload" class="view active">
+        <h2 data-i18n="uploadTitle">Upload Your Data</h2>
+        
+        <div style="display: flex; gap: 24px; margin-top: 20px;">
+          <!-- Left: Drag & Drop -->
+          <div style="flex: 1;">
+            <h3 style="margin-bottom: 12px; color: #cbd5e1; font-weight: 500;">New File</h3>
+            <div id="drop-zone" class="drop-zone" onclick="browseFile()">
+              <svg class="upload-icon" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <p data-i18n="uploadDesc">Drag and drop your CSV or Excel file here</p>
+              <button class="btn-primary" data-i18n="uploadBrowse">Browse Files</button>
+              <p class="drop-zone-hint" data-i18n="uploadSupported">Supported formats: CSV, XLS, XLSX</p>
+            </div>
+          </div>
+          
+          <!-- Right: Saved Datasets -->
+          <div style="flex: 1;">
+            <h3 style="margin-bottom: 12px; color: #cbd5e1; font-weight: 500;">Saved Datasets</h3>
+            <div id="saved-datasets-list" style="background: rgba(30, 41, 59, 0.4); border: 1px solid #334155; border-radius: 12px; padding: 16px; min-height: 200px; display: flex; flex-direction: column; gap: 8px;">
+              <!-- Populated by JS -->
+              <p style="color: #64748b; text-align: center; margin-top: 40px;">No saved datasets yet.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================
+           VIEW: Analysis
+           ====================================================== -->
+      <section id="view-analysis" class="view">
+
+        <!-- ── Data Preview ── -->
+        <div class="view-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 class="section-title" data-i18n="dataPreview" style="margin-bottom: 0;">Data Preview</h2>
+            <button class="btn btn-secondary" onclick="promptSaveDataset()">
+              <svg style="width:16px; height:16px; margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Dataset
+            </button>
+          </div>
+
+          <div class="metrics-row">
+            <div class="metric-card">
+              <span class="metric-label" data-i18n="rows">Rows</span>
+              <span class="metric-value" id="metric-rows">—</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label" data-i18n="columns">Columns</span>
+              <span class="metric-value" id="metric-cols">—</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label" data-i18n="missingValues">Missing Values</span>
+              <span class="metric-value" id="metric-missing">—</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label" data-i18n="duplicateRows">Duplicate Rows</span>
+              <span class="metric-value" id="metric-duplicates">—</span>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table" id="preview-table">
+              <thead><tr><th>—</th></tr></thead>
+              <tbody><tr><td class="empty-state" data-i18n="noData">N/A</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+
+
+        <!-- ── Interactive Filters ── -->
+        <div class="view-section" id="filter-section" style="display: none;">
+          <h2 class="section-title" data-i18n="filtersTitle">Interactive Filters</h2>
+          <div class="filter-bar" id="filter-container">
+            <!-- Dropdowns will be generated here -->
+          </div>
+        </div>
+
+        <!-- ── Anomaly Warnings ── -->
+        <div id="anomaly-container" style="display: none;">
+          <!-- Warnings injected here -->
+        </div>
+
+        <!-- ── KPI Cards ── -->
+        <div class="view-section">
+          <h2 class="section-title" data-i18n="kpiTitle">Key Performance Indicators</h2>
+
+          <div class="kpi-grid" id="kpi-container">
+            <p class="empty-state" data-i18n="noData">N/A</p>
+          </div>
+        </div>
+
+        <!-- ── Charts ── -->
+        <div class="view-section">
+          <h2 class="section-title" data-i18n="chartsTitle">Charts &amp; Visualizations</h2>
+          <div class="charts-grid" id="charts-container">
+            <p class="empty-state" data-i18n="noData">N/A</p>
+          </div>
+        </div>
+
+        <!-- ── Business Insights ── -->
+        <div class="view-section">
+          <h2 class="section-title" data-i18n="insightsTitle">Business Insights</h2>
+          <div class="insights-panel" id="insights-container">
+            <p class="empty-state" data-i18n="noData">N/A</p>
+          </div>
+        </div>
+
+        <!-- ── AI Insights ── -->
+        <div class="view-section">
+          <h2 class="section-title" data-i18n="aiInsightsTitle">AI Business Explanation</h2>
+          <div class="ai-panel" id="ai-insight-container">
+            <p class="empty-state" data-i18n="noData">N/A</p>
+          </div>
+        </div>
+
+        <!-- ── Chat with Data ── -->
+        <div class="view-section">
+          <h2 class="section-title" data-i18n="chatTitle">Chat with your Data</h2>
+          <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+            <div id="chat-history" style="padding: 16px; max-height: 300px; overflow-y: auto; flex-grow: 1; min-height: 100px;">
+              <p class="empty-state" style="margin: 0; font-size: 14px;">Ask a question about your data...</p>
+            </div>
+            <div style="display: flex; border-top: 1px solid #334155; padding: 12px; background: rgba(15, 23, 42, 0.8);">
+              <input type="text" id="chat-input" placeholder="Type your question..." style="flex-grow: 1; background: transparent; border: none; color: #f8fafc; font-size: 14px; outline: none;" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+              <button class="btn btn-primary" onclick="sendChatMessage()" style="padding: 8px 16px; margin-left: 12px;">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Forecast ── -->
+        <div class="view-section">
+          <h2 class="section-title" data-i18n="forecastTitle">Revenue Forecast</h2>
+          <p class="forecast-desc" data-i18n="forecastDesc">Based on linear regression analysis</p>
+          <div class="forecast-card" id="forecast-container">
+            <p class="empty-state" data-i18n="noForecast">Not enough data for forecasting. Need at least 2 months of data.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ======================================================
+           VIEW: Reports
+           ====================================================== -->
+      <section id="view-reports" class="view">
+        <h2 data-i18n="reportsTitle">PDF Report</h2>
+        <div class="report-card">
+          <button id="btn-generate-report" class="btn-primary" onclick="generateReport()" data-i18n="generateReport">Generate Report</button>
+          <button id="btn-download-report" class="btn-secondary" style="display:none" data-i18n="openReport">Open Report</button>
+          <p id="report-status"></p>
+        </div>
+        <div id="report-preview-container" class="report-preview" style="display:none;">
+          <div class="report-preview-header">
+            <h3>Report Preview</h3>
+            <span id="report-preview-path"></span>
+          </div>
+          <iframe id="report-preview-frame" title="PDF report preview" sandbox=""></iframe>
+        </div>
+      </section>
+
+      <!-- ======================================================
+           VIEW: History
+           ====================================================== -->
+      <section id="view-history" class="view">
+        <h2 data-i18n="historyTitle">Analysis History</h2>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-i18n="historyFile">File Name</th>
+                <th data-i18n="historyDate">Date</th>
+                <th data-i18n="historyRows">Rows</th>
+                <th data-i18n="historyCols">Columns</th>
+                <th data-i18n="historyRevenue">Revenue</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body">
+              <tr><td colspan="5" class="empty-state" data-i18n="historyEmpty">No analysis history yet. Upload a file to get started!</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── Settings View ── -->
+      <div id="view-settings" class="view" style="display: none;">
+        <h1 class="page-title" data-i18n="settingsTitle">Settings & Branding</h1>
+        
+        <div class="view-section">
+          <h2 class="section-title">PDF Report Branding</h2>
+          <div style="background: rgba(30, 41, 59, 0.5); padding: 24px; border-radius: 12px; border: 1px solid #334155; max-width: 500px;">
+            <div style="margin-bottom: 20px;">
+              <label style="display: block; color: #94a3b8; font-size: 14px; margin-bottom: 8px;">Company Logo (PNG/JPG)</label>
+              <button class="btn btn-secondary" onclick="browseLogo()">Select Logo</button>
+              <span id="settings-logo-path" style="margin-left: 10px; font-size: 12px; color: #64748b;">No logo selected</span>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <label style="display: block; color: #94a3b8; font-size: 14px; margin-bottom: 8px;">Brand Color</label>
+              <input type="color" id="settings-brand-color" value="#0ea5e9" style="background: transparent; border: none; cursor: pointer; width: 40px; height: 40px; padding: 0;">
+            </div>
+            
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Admin View ── -->
+      <section id="view-admin" class="view" style="display: none;">
+        <h2 style="color: #fbbf24; margin-bottom: 24px;">Admin Dashboard</h2>
+        
+        <div class="view-section">
+          <h3 class="section-title">Registered Users</h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-tbody">
+                <tr><td colspan="5" class="empty-state">Loading users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============ Scripts ============ -->
+  <script src="js/i18n.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

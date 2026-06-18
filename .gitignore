@@ -1,0 +1,42 @@
+# Environment
+.env
+.env.*
+!.env.example
+.venv/
+env/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Database
+database/app.db
+database/*.db
+*.sqlite
+*.sqlite3
+
+# Reports (generated)
+reports/*.pdf
+reports/
+
+# Local/demo datasets
+sample_data/
+
+# Logs / local runtime files
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Aider
+.aider*
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
