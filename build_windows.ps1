@@ -34,7 +34,7 @@ To enable them:
 Do not publish your .env file.
 
 For the easiest install:
-1. Download DataLens-Setup.exe from GitHub Actions.
+1. Download DataLens-Setup.exe from the GitHub Releases page.
 2. Open it.
 3. Keep the desktop shortcut selected.
 

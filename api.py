@@ -41,6 +41,7 @@ from database.db import (
 )
 
 import smtplib
+from email.utils import formataddr
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from urllib.parse import quote
@@ -74,6 +75,77 @@ def _load_environment():
 
 _load_environment()
 
+def _app_env_path():
+    return _app_data_dir() / ".env"
+
+def _env_file_value(value):
+    safe_value = str(value or "").replace("\r", "").replace("\n", "").strip()
+    if not safe_value:
+        return ""
+    if any(ch.isspace() for ch in safe_value) or "#" in safe_value:
+        safe_value = safe_value.replace('"', '\\"')
+        return f'"{safe_value}"'
+    return safe_value
+
+def _write_app_env_values(updates):
+    env_path = _app_env_path()
+    env_path.parent.mkdir(parents=True, exist_ok=True)
+    existing_lines = env_path.read_text(encoding="utf-8").splitlines() if env_path.exists() else []
+    output_lines = []
+    written = set()
+
+    for line in existing_lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            output_lines.append(line)
+            continue
+
+        key = stripped.split("=", 1)[0].strip()
+        if key in updates:
+            output_lines.append(f"{key}={_env_file_value(updates[key])}")
+            written.add(key)
+        else:
+            output_lines.append(line)
+
+    for key, value in updates.items():
+        if key not in written:
+            output_lines.append(f"{key}={_env_file_value(value)}")
+
+    env_path.write_text("\n".join(output_lines).rstrip() + "\n", encoding="utf-8")
+
+def _to_bool(value, default=True):
+    if value is None:
+        return default
+    return str(value).strip().lower() not in ("0", "false", "no", "off")
+
+def _smtp_settings():
+    try:
+        port = int(os.getenv("SMTP_PORT", "587"))
+    except ValueError:
+        port = 587
+
+    return {
+        "host": (os.getenv("SMTP_HOST") or "").strip(),
+        "port": port,
+        "user": (os.getenv("SMTP_USER") or "").strip(),
+        "password": os.getenv("SMTP_PASS") or "",
+        "from_name": (os.getenv("SMTP_FROM_NAME") or "DataLens").strip(),
+        "use_tls": _to_bool(os.getenv("SMTP_TLS"), True),
+    }
+
+def _smtp_public_status():
+    settings = _smtp_settings()
+    return {
+        "host": settings["host"],
+        "port": settings["port"],
+        "user": settings["user"],
+        "from_name": settings["from_name"],
+        "use_tls": settings["use_tls"],
+        "password_set": bool(settings["password"]),
+        "configured": bool(settings["host"] and settings["user"] and settings["password"]),
+        "config_path": str(_app_env_path()),
+    }
+
 REPORTS_DIR = _app_data_dir() / "reports"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024
@@ -97,18 +169,19 @@ def _safe_existing_file(path, allowed_extensions=None, max_bytes=None):
         return False
 
 def _send_reset_email(to_email, reset_link):
-    host = os.getenv('SMTP_HOST')
-    port = int(os.getenv('SMTP_PORT', 587))
-    user = os.getenv('SMTP_USER')
-    password = os.getenv('SMTP_PASS')
+    settings = _smtp_settings()
+    host = settings["host"]
+    port = settings["port"]
+    user = settings["user"]
+    password = settings["password"]
     
     if not host or not user or not password:
         print("Password reset email was not sent because SMTP settings are not configured.")
-        return False
+        return False, "smtp_not_configured"
         
     try:
         msg = MIMEMultipart("alternative")
-        msg['From'] = user
+        msg['From'] = formataddr((settings["from_name"], user))
         msg['To'] = to_email
         msg['Subject'] = 'DataLens Password Reset'
         
@@ -158,15 +231,19 @@ If you didn't request this, you can safely ignore this email.
         msg.attach(MIMEText(text_body, 'plain'))
         msg.attach(MIMEText(html_body, 'html'))
         
-        server = smtplib.SMTP(host, port)
-        server.starttls()
-        server.login(user, password)
-        server.send_message(msg)
-        server.quit()
-        return True
+        if port == 465:
+            server = smtplib.SMTP_SSL(host, port, timeout=20)
+        else:
+            server = smtplib.SMTP(host, port, timeout=20)
+            if settings["use_tls"]:
+                server.starttls()
+        with server:
+            server.login(user, password)
+            server.send_message(msg)
+        return True, None
     except Exception as e:
         print(f"Failed to send email: {e}")
-        return False
+        return False, str(e)
 
 
 def _has_groq_key():
@@ -289,11 +366,18 @@ class Api:
         # Create a mock internal URL or deep link. We'll use a placeholder format the frontend can parse.
         reset_link = f"datalens://reset-password?token={token}"
         
-        success = _send_reset_email(email, reset_link)
+        success, send_error = _send_reset_email(email, reset_link)
         if success:
             return json.dumps({"status": "ok"})
-        else:
-            return json.dumps({"error": "Password reset email is not configured. Add SMTP settings to the app .env file."})
+        if send_error == "smtp_not_configured":
+            return json.dumps({
+                "error": "Password reset email is not set up yet. Ask the DataLens admin to configure Email Setup.",
+                "code": "smtp_not_configured"
+            })
+        return json.dumps({
+            "error": "The reset email could not be sent. Check the Email Setup in the Admin Panel.",
+            "code": "smtp_send_failed"
+        })
 
     def reset_password(self, token, new_password):
         if not _valid_password(new_password):
@@ -822,6 +906,48 @@ class Api:
                 return json.dumps({"error": "Logo must be a PNG/JPG image under 8 MB."})
         save_user_settings(self._current_user_id, logo_path, brand_color)
         return json.dumps({"status": "ok"})
+
+    def get_email_settings(self):
+        if not self._current_user_id or not is_user_admin(self._current_user_id):
+            return json.dumps({"error": "Unauthorized"})
+        return json.dumps(_smtp_public_status())
+
+    def save_email_settings(self, host, port, user, password, from_name="DataLens", use_tls=True):
+        if not self._current_user_id or not is_user_admin(self._current_user_id):
+            return json.dumps({"error": "Unauthorized"})
+
+        host = (host or "").strip()
+        user = (user or "").strip()
+        from_name = (from_name or "DataLens").strip()
+        password = (password or "").strip()
+
+        try:
+            port = int(port)
+        except (TypeError, ValueError):
+            return json.dumps({"error": "SMTP port must be a number"})
+
+        if not host or not user:
+            return json.dumps({"error": "SMTP host and email user are required"})
+        if port < 1 or port > 65535:
+            return json.dumps({"error": "SMTP port is not valid"})
+        if not password and not os.getenv("SMTP_PASS"):
+            return json.dumps({"error": "SMTP password or app password is required"})
+
+        updates = {
+            "SMTP_HOST": host,
+            "SMTP_PORT": str(port),
+            "SMTP_USER": user,
+            "SMTP_FROM_NAME": from_name,
+            "SMTP_TLS": "true" if _to_bool(use_tls, True) else "false",
+        }
+        if password:
+            updates["SMTP_PASS"] = password
+
+        _write_app_env_values(updates)
+        for key, value in updates.items():
+            os.environ[key] = str(value)
+
+        return json.dumps({"status": "ok", "settings": _smtp_public_status()})
 
     def save_current_dataset(self, name):
         if self._current_user_id is None:

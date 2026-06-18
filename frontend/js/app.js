@@ -67,6 +67,7 @@ async function init() {
       if (session.is_admin) {
         document.getElementById('nav-admin').style.display = 'flex';
         loadAdminUsers();
+        loadEmailSettings();
       }
       document.getElementById('app-sidebar').style.display = 'flex';
       loadHistory();
@@ -115,6 +116,61 @@ async function saveSettings() {
   }
 }
 
+async function loadEmailSettings() {
+  const statusEl = document.getElementById('email-settings-status');
+  if (!statusEl) return;
+
+  try {
+    const res = await window.pywebview.api.get_email_settings();
+    const settings = JSON.parse(res);
+    if (settings.error) {
+      statusEl.textContent = settings.error;
+      statusEl.className = 'status-banner status-error';
+      return;
+    }
+
+    document.getElementById('smtp-host').value = settings.host || '';
+    document.getElementById('smtp-port').value = settings.port || 587;
+    document.getElementById('smtp-user').value = settings.user || '';
+    document.getElementById('smtp-from-name').value = settings.from_name || 'DataLens';
+    document.getElementById('smtp-pass').value = '';
+    document.getElementById('smtp-tls').checked = settings.use_tls !== false;
+
+    statusEl.textContent = settings.configured
+      ? 'Email is configured. Leave password blank to keep the current saved password.'
+      : 'Email is not configured yet.';
+    statusEl.className = settings.configured ? 'status-banner status-success' : 'status-banner status-warning';
+  } catch (e) {
+    statusEl.textContent = 'Could not load email settings.';
+    statusEl.className = 'status-banner status-error';
+  }
+}
+
+async function saveEmailSettings() {
+  const host = document.getElementById('smtp-host').value.trim();
+  const port = document.getElementById('smtp-port').value.trim();
+  const user = document.getElementById('smtp-user').value.trim();
+  const password = document.getElementById('smtp-pass').value.trim();
+  const fromName = document.getElementById('smtp-from-name').value.trim() || 'DataLens';
+  const useTls = document.getElementById('smtp-tls').checked;
+
+  showLoading(true);
+  try {
+    const res = await window.pywebview.api.save_email_settings(host, port, user, password, fromName, useTls);
+    const data = JSON.parse(res);
+    showLoading(false);
+    if (data.status === 'ok') {
+      showToast('Email setup saved. Password reset emails can now be sent.', 'success');
+      loadEmailSettings();
+    } else {
+      showToast(data.error || 'Failed to save email setup', 'error');
+    }
+  } catch (e) {
+    showLoading(false);
+    showToast('Failed to save email setup', 'error');
+  }
+}
+
 function navigateTo(view) {
   currentView = view;
   document.querySelectorAll('.view').forEach(el => {
@@ -123,6 +179,10 @@ function navigateTo(view) {
   const targetEl = document.getElementById(`view-${view}`);
   if (targetEl) {
     targetEl.style.display = view === 'auth' ? 'flex' : 'block';
+  }
+  if (view === 'admin') {
+    loadAdminUsers();
+    loadEmailSettings();
   }
   if (view !== 'auth') {
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -168,6 +228,7 @@ async function handleLogin() {
       if (session.is_admin) {
         document.getElementById('nav-admin').style.display = 'flex';
         loadAdminUsers();
+        loadEmailSettings();
       }
       document.getElementById('app-sidebar').style.display = 'flex';
       loadHistory();
@@ -205,6 +266,7 @@ async function handleRegister() {
       if (session.is_admin) {
         document.getElementById('nav-admin').style.display = 'flex';
         loadAdminUsers();
+        loadEmailSettings();
       }
       document.getElementById('app-sidebar').style.display = 'flex';
       loadHistory();
@@ -234,7 +296,8 @@ async function handleForgotPassword() {
       showToast('Reset link sent to your email!', 'success');
       showAuthView('login');
     } else {
-      showToast(data.error || 'Failed to send reset link', 'error');
+      const type = data.code === 'smtp_not_configured' ? 'warning' : 'error';
+      showToast(data.error || 'Failed to send reset link', type);
     }
   } catch (e) {
     showLoading(false);

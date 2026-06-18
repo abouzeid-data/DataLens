@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DataLens</title>
-  <link rel="icon" type="image/png" href="assets/LOGO.png" />
+  <link rel="icon" type="image/png" href="assets/APP_ICON.png" />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,7 +31,7 @@
     <!-- ======== Sidebar ======== -->
     <aside class="sidebar" id="app-sidebar" style="display: none;">
       <div class="sidebar-header">
-        <img class="app-logo app-logo-sidebar" src="assets/LOGO.png" alt="DataLens logo">
+        <img class="app-logo app-logo-sidebar" src="assets/APP_ICON.png" alt="DataLens logo">
         <span class="logo-text">DataLens</span>
       </div>
 
@@ -168,7 +168,7 @@
       <!-- ---- Top Header ---- -->
       <header class="top-header">
         <div class="top-brand">
-          <img class="app-logo app-logo-header" src="assets/LOGO.png" alt="DataLens logo">
+          <img class="app-logo app-logo-header" src="assets/APP_ICON.png" alt="DataLens logo">
           <h1 class="page-title" data-i18n="appName">DataLens</h1>
         </div>
         <div class="header-actions">
@@ -392,6 +392,41 @@
       <!-- ── Admin View ── -->
       <section id="view-admin" class="view" style="display: none;">
         <h2 style="color: #fbbf24; margin-bottom: 24px;">Admin Dashboard</h2>
+
+        <div class="view-section">
+          <h3 class="section-title">Email Setup</h3>
+          <div class="settings-panel">
+            <div class="status-banner" id="email-settings-status">Email is not configured yet.</div>
+            <div class="settings-grid">
+              <div class="form-group">
+                <label class="form-label" for="smtp-host">SMTP Host</label>
+                <input class="form-input" id="smtp-host" placeholder="smtp.gmail.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="smtp-port">Port</label>
+                <input class="form-input" id="smtp-port" type="number" min="1" max="65535" value="587">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="smtp-user">Email User</label>
+                <input class="form-input" id="smtp-user" type="email" placeholder="you@gmail.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="smtp-from-name">Sender Name</label>
+                <input class="form-input" id="smtp-from-name" placeholder="DataLens">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="smtp-pass">SMTP Password</label>
+                <input class="form-input" id="smtp-pass" type="password" placeholder="Gmail app password">
+              </div>
+              <label class="check-row">
+                <input id="smtp-tls" type="checkbox" checked>
+                <span>Use TLS</span>
+              </label>
+            </div>
+            <p class="settings-hint">For Gmail, use host smtp.gmail.com, port 587, and a Gmail App Password.</p>
+            <button class="btn btn-primary" onclick="saveEmailSettings()">Save Email Setup</button>
+          </div>
+        </div>
         
         <div class="view-section">
           <h3 class="section-title">Registered Users</h3>

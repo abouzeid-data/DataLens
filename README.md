@@ -2,6 +2,14 @@
 
 DataLens is a Windows desktop app for analyzing Excel and CSV files. It loads one or more datasets, cleans the data, detects useful columns, calculates KPIs, builds charts, highlights anomalies, creates forecasts, and generates PDF reports.
 
+## Download
+
+Download the Windows installer from the latest release:
+
+[Download DataLens for Windows](https://github.com/abouzeid-data/DataLens/releases/latest)
+
+Choose `DataLens-Setup.exe` for the normal install. It creates the Desktop shortcut and Start Menu shortcut automatically.
+
 ## Features
 
 1. Upload CSV, XLS, or XLSX files.
@@ -26,7 +34,7 @@ pip install -r requirements.txt
 
 Copy `.env.example` to `.env` and add `GROQ_API_KEY` if you want AI explanations. Add SMTP settings if you want password reset emails. The app still works without a Groq key.
 
-For the downloadable Windows app, place `.env` next to `DataLens.exe` or create `%APPDATA%\DataLens\.env`. Password reset emails will not send until SMTP settings are configured.
+For the downloadable Windows app, email can be configured from the Admin Panel inside DataLens. You can also place `.env` next to `DataLens.exe` or create `%APPDATA%\DataLens\.env`. Password reset emails will not send until SMTP settings are configured.
 
 ## How To Run
 
