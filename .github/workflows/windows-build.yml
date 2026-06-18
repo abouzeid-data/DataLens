@@ -22,12 +22,22 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
       - name: Build DataLens
         shell: pwsh
         run: ./build_windows.ps1
 
-      - name: Upload downloadable app
+      - name: Upload portable app
         uses: actions/upload-artifact@v4
         with:
           name: DataLens-windows
           path: DataLens-windows.zip
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: DataLens-Setup
+          path: DataLens-Setup.exe

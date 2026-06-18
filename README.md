@@ -38,7 +38,10 @@ The DataLens desktop window will open. Log in or register, then upload a CSV or 
 
 ## Downloadable Windows Build
 
-The GitHub Actions workflow `Build Windows App` creates a downloadable `DataLens-windows.zip` artifact.
+The GitHub Actions workflow `Build Windows App` creates two downloadable artifacts:
+
+1. `DataLens-Setup`: a Windows installer that creates a Desktop shortcut and Start Menu shortcut.
+2. `DataLens-windows`: a portable zip for users who do not want an installer.
 
 To build locally on Windows:
 
@@ -46,7 +49,7 @@ To build locally on Windows:
 .\build_windows.ps1
 ```
 
-The packaged app will be created at `dist\DataLens\DataLens.exe`, and a zip file will be created as `DataLens-windows.zip`.
+The packaged app will be created at `dist\DataLens\DataLens.exe`, a zip file will be created as `DataLens-windows.zip`, and `DataLens-Setup.exe` will be created when Inno Setup is installed.
 
 ## Security Notes
 
@@ -63,6 +66,7 @@ DataLens/
 |-- main.py                 # Desktop app entry point
 |-- api.py                  # Python bridge for the desktop UI
 |-- build_windows.ps1       # Local Windows packaging script
+|-- installer/              # Windows installer setup
 |-- .github/workflows/      # GitHub Actions build workflow
 |-- frontend/               # HTML, CSS, and JavaScript interface
 |   `-- assets/LOGO.png     # App logo
